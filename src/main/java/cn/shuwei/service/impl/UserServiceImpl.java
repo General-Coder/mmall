@@ -31,7 +31,7 @@ public class UserServiceImpl implements IUserService {
         String md5Password = MD5Util.MD5EncodeUtf8(password);
 
         // 检查用户名密码是否匹配
-        User user = userMapper.selectLogin(username, password);
+        User user = userMapper.selectLogin(username, md5Password);
         if (user == null) {
             // 密码错误
             return ServerResponse.createByErrorMessage("密码错误");
@@ -190,5 +190,18 @@ public class UserServiceImpl implements IUserService {
        }
        user.setPassword(StringUtils.EMPTY);
        return ServerResponse.createBySuccess(user);
+    }
+
+    /**
+     * 校验是否是管理员
+     * @param user
+     * @return
+     */
+    @Override
+    public ServerResponse checkAdminRole(User user) {
+        if (user != null && user.getRole() == Const.Role.ROLE_ADMIN){
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }
