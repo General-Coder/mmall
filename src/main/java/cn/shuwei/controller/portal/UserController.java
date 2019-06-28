@@ -5,6 +5,8 @@ import cn.shuwei.common.ResponseCode;
 import cn.shuwei.common.ServerResponse;
 import cn.shuwei.pojo.User;
 import cn.shuwei.service.IUserService;
+import cn.shuwei.utils.PropertiesUtil;
+import com.aliyun.oss.OSSClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
+import java.io.ByteArrayInputStream;
 
 
 /**
@@ -155,18 +158,6 @@ public class UserController {
         return response;
     }
 
-    /**
-     * 获取用户信息
-     *
-     * @param session
-     * @return
-     */
-    @RequestMapping(value = "/getInfo", method = RequestMethod.GET)
-    public ServerResponse<User> getUserInfomation(HttpSession session) {
-        User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
-        if (currentUser == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "未登录,需要强制登录status=10");
-        }
-        return iUserService.getUserInfo(currentUser.getId());
-    }
 }
+
+
