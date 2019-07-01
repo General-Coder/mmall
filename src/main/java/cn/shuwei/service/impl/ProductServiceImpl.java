@@ -89,23 +89,24 @@ public class ProductServiceImpl implements IProductService {
 
     /**
      * 查询单个产品信息
+     *
      * @param productId
      * @return
      */
     @Override
     public ServerResponse<ProductDetailVo> managerProductDetail(Integer productId) {
-        if (productId == null){
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        if (productId == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc());
         }
         Product product = productMapper.selectByPrimaryKey(productId);
-        if (product == null){
+        if (product == null) {
             return ServerResponse.createByErrorMessage("产品已下架或删除");
         }
         ProductDetailVo productDetailVO = assembleProductDetailVo(product);
         return ServerResponse.createBySuccess(productDetailVO);
     }
 
-    private ProductDetailVo assembleProductDetailVo(Product product){
+    private ProductDetailVo assembleProductDetailVo(Product product) {
         ProductDetailVo productDetailVo = new ProductDetailVo();
         productDetailVo.setId(product.getId());
         productDetailVo.setSubtitle(product.getSubtitle());
@@ -118,12 +119,12 @@ public class ProductServiceImpl implements IProductService {
         productDetailVo.setStatus(product.getStatus());
         productDetailVo.setStock(product.getStock());
 
-        productDetailVo.setImageHost(PropertiesUtil.getProperty("oss.host","https://img.zhangding.work"));
+        productDetailVo.setImageHost(PropertiesUtil.getProperty("oss.host", "https://img.zhangding.work"));
         Category category = categoryMapper.selectByPrimaryKey(product.getCategoryId());
-        if (category == null){
+        if (category == null) {
             // 默认根节点
             productDetailVo.setParentCategoryId(0);
-        }else {
+        } else {
             productDetailVo.setParentCategoryId(category.getParentId());
         }
         productDetailVo.setCreateTime(DateTimeUtil.dateToStr(product.getCreateTime()));
@@ -135,12 +136,12 @@ public class ProductServiceImpl implements IProductService {
     public ServerResponse<PageInfo> getProductList(int pageNum, int pageSize) {
         // mybatis  pagehelper 使用方法
         // startpage  开始
-        PageHelper.startPage(pageNum,pageSize);
+        PageHelper.startPage(pageNum, pageSize);
         // 填充sql查询逻辑
         List<Product> productList = productMapper.selectList();
 
         List<ProductListVo> productListVoList = new ArrayList<>();
-        for (Product product:productList){
+        for (Product product : productList) {
             ProductListVo productListVo = assembleProductListVo(product);
             productListVoList.add(productListVo);
         }
@@ -150,7 +151,7 @@ public class ProductServiceImpl implements IProductService {
         return ServerResponse.createBySuccess(pageInfo);
     }
 
-    private ProductListVo assembleProductListVo(Product product){
+    private ProductListVo assembleProductListVo(Product product) {
         ProductListVo productListVo = new ProductListVo();
         productListVo.setId(product.getId());
         productListVo.setSubtitle(product.getSubtitle());
@@ -159,7 +160,25 @@ public class ProductServiceImpl implements IProductService {
         productListVo.setCategoryId(product.getCategoryId());
         productListVo.setName(product.getName());
         productListVo.setStatus(product.getStatus());
-        productListVo.setImageHost(PropertiesUtil.getProperty("oss.host","https://img.zhangding.work"));
+        productListVo.setImageHost(PropertiesUtil.getProperty("oss.host"));
         return productListVo;
+    }
+
+    @Override
+    public ServerResponse<PageInfo> searchProduct(String productName, Integer productid, int pageNum, int pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        if (StringUtils.isNotBlank(productName)) {
+            productName = new StringBuilder().append("%").append(productName).append("%").toString();
+        }
+        List<Product> productList = productMapper.selectByNameAndProductId(productName, productid);
+        List<ProductListVo> productListVoList = new ArrayList<>();
+        for (Product product : productList) {
+            ProductListVo productListVo = assembleProductListVo(product);
+            productListVoList.add(productListVo);
+        }
+
+        PageInfo pageInfo = new PageInfo(productList);
+        pageInfo.setList(productListVoList);
+        return ServerResponse.createBySuccess(pageInfo);
     }
 }
